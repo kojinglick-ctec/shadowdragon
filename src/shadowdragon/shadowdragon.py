@@ -528,7 +528,7 @@ class ShadowDragonAPI:
                 return json
             
     @log_request
-    async def facebook_user_friends(self, user_id: str, limit: Union[int, None] = 1000, queue: Union[bool, None] = False) -> list[dict[str, Any]]:
+    async def facebook_posts_by_user(self, user_id: str, limit: Union[int, None] = 1000, queue: Union[bool, None] = False) -> list[dict[str, Any]]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
             url = f"{self.base_url}/users/{user_id}/posts_by"
 
