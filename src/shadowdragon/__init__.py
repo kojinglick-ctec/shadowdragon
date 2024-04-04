@@ -1,3 +1,3 @@
 from .shadowdragon import *
 
-__all__ = shadowdragon.__all__
+__all__ = (shadowdragon.__all__)

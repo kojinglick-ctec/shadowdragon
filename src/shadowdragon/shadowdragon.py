@@ -1,12 +1,7 @@
-from typing import Optional, Union, Any
-from dotenv import load_dotenv
-import os
-import asyncio
+from typing import Union, Any
 import aiohttp
 import logging
 import time
-
-import csv
 
 __all__ = ["ShadowDragonAPI"]
 
@@ -40,7 +35,6 @@ def log_request(func):
     return wrapper
 
 
-
 class ShadowDragonAPI:
     def __init__(self, api_key):
 
@@ -68,12 +62,15 @@ class ShadowDragonAPI:
                 return text
             
     # General Search
-    async def search(self, alias: str, limit: int = 1000) -> list[dict[str, Any]]:
+    @log_request
+    async def search(self, alias: str, limit: int = 1000, queue: Union[bool, None] = False) -> list[dict[str, Any]]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
             url = f"{self.base_url}/search?alias={alias}"
 
             if limit:
                 url += f"?limit={limit}"
+            if queue:
+                url +=f"&queue={queue}"
 
             async with session.get(url, headers=self.headers) as response:
                 json = await response.json()
@@ -87,7 +84,7 @@ class ShadowDragonAPI:
     # Instagram
 
     @log_request
-    async def instagram_search(self, alias: Union[str, None], name: Union[str, None] = None, q: Union[str, None] = None, limit: Union[int, None] = None) -> dict[str, Any]:
+    async def instagram_search(self, alias: Union[str, None], name: Union[str, None] = None, q: Union[str, None] = None, limit: Union[int, None] = None, queue: Union[bool, None] = False) -> dict[str, Any]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
 
             url = f"{self.base_url}/instagram/search"
@@ -102,6 +99,8 @@ class ShadowDragonAPI:
                 params.append(f"q={q}")
             if limit:
                 params.append(f"limit={limit}")
+            if queue:
+                params.append(f"queue={queue}")
 
             if len(params) > 0:
                 url += "?" + "&".join(params)
@@ -116,7 +115,7 @@ class ShadowDragonAPI:
                 return json
 
     @log_request
-    async def instagram_search_users(self, alias: Union[str, None], name: Union[str, None] = None, q: Union[str, None] = None, limit: Union[int, None] = None) -> dict[str, Any]:
+    async def instagram_search_users(self, alias: Union[str, None], name: Union[str, None] = None, q: Union[str, None] = None, limit: Union[int, None] = None, queue: Union[bool, None] = False) -> dict[str, Any]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
 
             url = f"{self.base_url}/instagram/search/users"
@@ -131,6 +130,8 @@ class ShadowDragonAPI:
                 params.append(f"q={q}")
             if limit:
                 params.append(f"limit={limit}")
+            if queue:
+                params.append(f"queue={queue}")
 
             if len(params) > 0:
                 url += "?" + "&".join(params)
@@ -145,7 +146,7 @@ class ShadowDragonAPI:
                 return json
 
     @log_request
-    async def instagram_search_recovery(self, email: Union[str, None], phone: Union[str, None] = None, limit: Union[int, None] = None) -> dict[str, Any]:
+    async def instagram_search_recovery(self, email: Union[str, None], phone: Union[str, None] = None, limit: Union[int, None] = None, queue: Union[bool, None] = False) -> dict[str, Any]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
 
             url = f"{self.base_url}/instagram/search/recovery"
@@ -158,6 +159,8 @@ class ShadowDragonAPI:
                 params.append(f"phone={phone}")
             if limit:
                 params.append(f"limit={limit}")
+            if queue:
+                params.append(f"queue={queue}")
 
             if len(params) > 0:
                 url += "?" + "&".join(params)
@@ -172,7 +175,7 @@ class ShadowDragonAPI:
                 return json
 
     @log_request
-    async def instagram_search_locations(self, name: Union[str, None], q: Union[str, None] = None, latlng: Union[str, None] = None, limit: Union[int, None] = None) -> dict[str, Any]:
+    async def instagram_search_locations(self, name: Union[str, None], q: Union[str, None] = None, latlng: Union[str, None] = None, limit: Union[int, None] = None, queue: Union[bool, None] = False) -> dict[str, Any]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
 
             url = f"{self.base_url}/instagram/search/locations"
@@ -187,6 +190,8 @@ class ShadowDragonAPI:
                 params.append(f"latlng={latlng}")
             if limit:
                 params.append(f"limit={limit}")
+            if queue:
+                params.append(f"queue={queue}")
 
             if len(params) > 0:
                 url += "?" + "&".join(params)
@@ -201,7 +206,7 @@ class ShadowDragonAPI:
                 return json
 
     @log_request
-    async def instagram_search_tags(self, alias: Union[str, None], name: Union[str, None] = None, q: Union[str, None] = None, limit: Union[int, None] = None) -> dict[str, Any]:
+    async def instagram_search_tags(self, alias: Union[str, None], name: Union[str, None] = None, q: Union[str, None] = None, limit: Union[int, None] = None, queue: Union[bool, None] = False) -> dict[str, Any]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
 
             url = f"{self.base_url}/instagram/search/tags"
@@ -216,6 +221,8 @@ class ShadowDragonAPI:
                 params.append(f"q={q}")
             if limit:
                 params.append(f"limit={limit}")
+            if queue:
+                params.append(f"queue={queue}")
 
             if len(params) > 0:
                 url += "?" + "&".join(params)
@@ -230,11 +237,14 @@ class ShadowDragonAPI:
                 return json
 
     @log_request
-    async def instagram_user(self, user_id: str) -> dict[str, Any]:
+    async def instagram_user(self, user_id: str, queue: Union[bool, None] = False) -> dict[str, Any]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
 
             url = f"{self.base_url}/instagram/users/{user_id}"
 
+            if queue:
+                url += f"?queue={queue}"            
+
             async with session.get(url, headers=self.headers) as response:
                 json = await response.json()
                 json['rate_limit'] = {
@@ -245,10 +255,13 @@ class ShadowDragonAPI:
                 return json
 
     @log_request
-    async def instagram_user_story(self, user_id: str) -> dict[str, Any]:
+    async def instagram_user_story(self, user_id: str, queue: Union[bool, None] = False) -> dict[str, Any]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
 
             url = f"{self.base_url}/instagram/users/{user_id}/story"
+            
+            if queue:
+                url += f"?queue={queue}"
 
             async with session.get(url, headers=self.headers) as response:
                 json = await response.json()
@@ -260,7 +273,7 @@ class ShadowDragonAPI:
                 return json
 
     @log_request
-    async def instagram_user_followers(self, user_id: str, limit: Union[int, None] = 1000) -> dict[str, Any]:
+    async def instagram_user_followers(self, user_id: str, limit: Union[int, None] = 1000, queue: Union[bool, None] = False) -> dict[str, Any]:
         """
             Issue: will not accurately pull followers.
 
@@ -276,6 +289,8 @@ class ShadowDragonAPI:
 
             if limit:
                 url += f"?limit={limit}"
+            if queue:
+                url += f"&queue={queue}"
 
             async with session.get(url, headers=self.headers) as response:
                 json = await response.json()
@@ -287,12 +302,14 @@ class ShadowDragonAPI:
                 return json
 
     @log_request
-    async def instagram_user_following(self, user_id: str, limit: Union[int, None] = 1000) -> dict[str, Any]:
+    async def instagram_user_following(self, user_id: str, limit: Union[int, None] = 1000, queue: Union[bool, None] = False) -> dict[str, Any]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
             url = f"{self.base_url}/instagram/users/{user_id}/following"
 
             if limit:
                 url += f"?limit={limit}"
+            if queue:
+                url += f"&queue={queue}"
 
             async with session.get(url, headers=self.headers) as response:
                 json = await response.json()
@@ -304,12 +321,14 @@ class ShadowDragonAPI:
                 return json
 
     @log_request
-    async def instagram_user_posts(self, user_id: str, limit: Union[int, None] = 1000) -> dict[str, Any]:
+    async def instagram_user_posts(self, user_id: str, limit: Union[int, None] = 1000, queue: Union[bool, None] = False) -> dict[str, Any]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
             url = f"{self.base_url}/instagram/users/{user_id}/posts"
 
             if limit:
                 url += f"?limit={limit}"
+            if queue:
+                url += f"&queue={queue}"
 
             async with session.get(url, headers=self.headers) as response:
                 json = await response.json()
@@ -321,12 +340,14 @@ class ShadowDragonAPI:
                 return json
 
     @log_request
-    async def instagram_user_reels(self, user_id: str, limit: Union[int, None] = 1000) -> dict[str, Any]:
+    async def instagram_user_reels(self, user_id: str, limit: Union[int, None] = 1000, queue: Union[bool, None] = False) -> dict[str, Any]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
             url = f"{self.base_url}/instagram/users/{user_id}/reels"
 
             if limit:
                 url += f"?limit={limit}"
+            if queue:
+                url += f"&queue={queue}"
 
             async with session.get(url, headers=self.headers) as response:
                 json = await response.json()
@@ -338,12 +359,14 @@ class ShadowDragonAPI:
                 return json
 
     @log_request
-    async def instagram_user_highlights(self, user_id: str, limit: Union[int, None] = 1000) -> dict[str, Any]:
+    async def instagram_user_highlights(self, user_id: str, limit: Union[int, None] = 1000, queue: Union[bool, None] = False) -> dict[str, Any]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
             url = f"{self.base_url}/instagram/users/{user_id}/highlights"
 
             if limit:
                 url += f"?limit={limit}"
+            if queue:
+                url += f"&queue={queue}"
 
             async with session.get(url, headers=self.headers) as response:
                 json = await response.json()
@@ -355,12 +378,14 @@ class ShadowDragonAPI:
                 return json
 
     @log_request
-    async def instagram_user_tagged_posts(self, user_id: str, limit: Union[int, None] = 1000) -> dict[str, Any]:
+    async def instagram_user_tagged_posts(self, user_id: str, limit: Union[int, None] = 1000, queue: Union[bool, None] = False) -> dict[str, Any]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
             url = f"{self.base_url}/instagram/users/{user_id}/tagged_posts"
 
             if limit:
                 url += f"?limit={limit}"
+            if queue:
+                url += f"&queue={queue}"
 
             async with session.get(url, headers=self.headers) as response:
                 json = await response.json()
@@ -373,10 +398,13 @@ class ShadowDragonAPI:
 
 
     @log_request
-    async def instagram_post(self, post_id: str) -> dict[str, Any]:
+    async def instagram_post(self, post_id: str, queue: Union[bool, None] = False) -> dict[str, Any]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
             url = f"{self.base_url}/instagram/posts/{post_id}"
 
+            if queue:
+                url += f"?queue={queue}"
+
             async with session.get(url, headers=self.headers) as response:
                 json = await response.json()
                 json['rate_limit'] = {
@@ -387,14 +415,14 @@ class ShadowDragonAPI:
                 return json
 
     @log_request
-    async def instagram_post_likers(self, post_id: str, limit: Union[int, None] = 1000) -> dict[str, Any]:
+    async def instagram_post_likers(self, post_id: str, limit: Union[int, None] = 1000, queue: Union[bool, None] = False) -> dict[str, Any]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
             url = f"{self.base_url}/instagram/posts/{post_id}/likers"
 
             if limit:
                 url += f"?limit={limit}"
-
-            print(url)
+            if queue:
+                url += f"&queue={queue}"
 
             async with session.get(url, headers=self.headers) as response:
                 json = await response.json()
@@ -407,12 +435,14 @@ class ShadowDragonAPI:
                 return json
 
     @log_request
-    async def instagram_post_comments(self, post_id: str, limit: Union[int, None] = 1000) -> dict[str, Any]:
+    async def instagram_post_comments(self, post_id: str, limit: Union[int, None] = 1000, queue: Union[bool, None] = False) -> dict[str, Any]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
             url = f"{self.base_url}/instagram/posts/{post_id}/comments"
 
             if limit:
                 url += f"?limit={limit}"
+            if queue:
+                url += f"&queue={queue}"
 
             async with session.get(url, headers=self.headers) as response:
                 json = await response.json()
@@ -424,12 +454,14 @@ class ShadowDragonAPI:
                 return json
 
     @log_request
-    async def instagram_comment_likers(self, comment_id: str, limit: Union[int, None] = 1000) -> dict[str, Any]:
+    async def instagram_comment_likers(self, comment_id: str, limit: Union[int, None] = 1000, queue: Union[bool, None] = False) -> dict[str, Any]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
             url = f"{self.base_url}/instagram/comments/{comment_id}/likers"
 
             if limit:
                 url += f"?limit={limit}"
+            if queue:
+                url += f"&queue={queue}"
 
             async with session.get(url, headers=self.headers) as response:
                 json = await response.json()
@@ -441,12 +473,14 @@ class ShadowDragonAPI:
                 return json
 
     @log_request
-    async def instagram_comment_replies(self, comment_id: str, limit: Union[int, None] = 1000) -> dict[str, Any]:
+    async def instagram_comment_replies(self, comment_id: str, limit: Union[int, None] = 1000, queue: Union[bool, None] = False) -> dict[str, Any]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
             url = f"{self.base_url}/instagram/comments/{comment_id}/replies"
 
             if limit:
                 url += f"?limit={limit}"
+            if queue:
+                url += f"&queue={queue}"
 
             async with session.get(url, headers=self.headers) as response:
                 json = await response.json()
@@ -458,10 +492,13 @@ class ShadowDragonAPI:
                 return json
 
     @log_request
-    async def facebook_user(self, user_id: str) -> dict[str, Any]:
+    async def facebook_user(self, user_id: str, queue: Union[bool, None] = False) -> dict[str, Any]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
             url = f"{self.base_url}/facebook/users/{user_id}"
 
+            if queue:
+                url += f"?queue={queue}"
+
             async with session.get(url, headers=self.headers) as response:
                 json = await response.json()
                 json['rate_limit'] = {
@@ -472,12 +509,33 @@ class ShadowDragonAPI:
                 return json
 
     @log_request
-    async def facebook_user_friends(self, user_id: str, limit: Union[int, None] = 1000) -> list[dict[str, Any]]:
+    async def facebook_user_friends(self, user_id: str, limit: Union[int, None] = 1000, queue: Union[bool, None] = False) -> list[dict[str, Any]]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
             url = f"{self.base_url}/facebook/users/{user_id}/friends"
 
             if limit:
                 url += f"?limit={limit}"
+            if queue:
+                url += f"&queue={queue}"
+
+            async with session.get(url, headers=self.headers) as response:
+                json = await response.json()
+                json['rate_limit'] = {
+                    "limit": response.headers.get("X-Ratelimit-Limit"),
+                    "remaining": response.headers.get("X-Ratelimit-Remaining"),
+                    "reset_in": response.headers.get("X-Ratelimit-Reset")
+                }
+                return json
+            
+    @log_request
+    async def facebook_user_friends(self, user_id: str, limit: Union[int, None] = 1000, queue: Union[bool, None] = False) -> list[dict[str, Any]]:
+        async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
+            url = f"{self.base_url}/users/{user_id}/posts_by"
+
+            if limit:
+                url += f"?limit={limit}"
+            if queue:
+                url += f"&queue={queue}"
 
             async with session.get(url, headers=self.headers) as response:
                 json = await response.json()
