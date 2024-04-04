@@ -1,6 +1,6 @@
 [project]
 name = "shadowdragon"
-version = "0.0.4"
+version = "0.0.6"
 authors = [
   { name="Kojin Glick", email="kglick@middlebury.edu" },
 ]
@@ -11,6 +11,9 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
+]
+dependencies = [
+  "aiohttp"
 ]
 
 [project.urls]

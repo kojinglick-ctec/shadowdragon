@@ -2,6 +2,7 @@ from typing import Union, Any
 import aiohttp
 import logging
 import time
+import asyncio
 
 __all__ = ["ShadowDragonAPI"]
 
@@ -60,6 +61,13 @@ class ShadowDragonAPI:
             async with session.get(f"{self.base_url}/status", headers=self.headers) as response:
                 text = await response.text()
                 return text
+
+    async def queue_requests() -> list[dict[str, Any]]:
+        """
+            WIP: This function sends the listed requests, and listens for their responses in 
+        """
+
+        return []
             
     # General Search
     @log_request
