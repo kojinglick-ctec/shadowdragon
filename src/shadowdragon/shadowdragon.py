@@ -728,23 +728,3 @@ class ShadowDragonAPI:
                     "reset_in": response.headers.get("X-Ratelimit-Reset")
                 }
                 return json
-
-
-if __name__ == "__main__":
-    import os
-    from dotenv import load_dotenv
-
-
-    async def execute_queue_requests():
-        load_dotenv()
-        sd = ShadowDragonAPI(api_key=os.getenv("SHADOWDRAGON_API_KEY"))
-        queued_requests = [
-            QueuedRequest(method=SDMethod.FACEBOOK_USER, params={"user_id": "kojinp"}),
-            # QueuedRequest(method=SDMethod.FACEBOOK_USER, params={"user_id": "kojinp"})
-        ]
-
-        data = await sd.queue_requests(queued_requests)
-
-        print(data[0].response)
-
-    asyncio.run(execute_queue_requests())
