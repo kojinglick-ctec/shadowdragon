@@ -86,19 +86,19 @@ class QueuedRequest:
 
     def get_method_value(self) -> str:
         return self.method.value
-    
+
     def get_params(self) -> dict[str, Any]:
         return self.params
 
     def set_task_id(self, task_id: str):
         self.task_id = task_id
 
-    def get_task_id(self) -> str:
+    def get_task_id(self) -> str | None:
         return self.task_id
-    
+
     def is_sent(self) -> bool:
         return self.task_id is not None
-    
+
 class CompletedRequest:
     def __init__(self, task_id: str, response: Union[dict[str, Any], list[dict[str, Any]]], status: CompletedRequestStatus):
         self.task_id = task_id
@@ -127,7 +127,7 @@ class ShadowDragonAPI:
                 text = await response.text()
                 return text
 
-    async def rate_limit(self) -> str:
+    async def rate_limit(self) -> dict[str, int]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
             async with session.get(f"{self.base_url}/rate_limit", headers=self.headers) as response:
                 json = await response.json()
@@ -138,26 +138,26 @@ class ShadowDragonAPI:
             async with session.get(f"{self.base_url}/status", headers=self.headers) as response:
                 text = await response.text()
                 return text
-            
-    # Queuing + Waiting for 
-    async def report_status_every_30_secs(remaining: int):
+
+    # Queuing + Waiting for
+    async def report_status_every_30_secs(self, remaining: int):
         remaining_wait = float(remaining)
         while True:
             await asyncio.sleep(30.0)
             remaining_wait -= 30.0
             print(f"Still sleeping for {remaining_wait} seconds...")
 
-    async def sleep_for(remaining: int):
+    async def sleep_for(self, remaining: int):
         await asyncio.sleep(float(remaining))
-    
+
     async def run_queued_requests(self, reqs: list[QueuedRequest]):
         """
         Send requests and put them into the queue.
         """
         for queued_request in reqs:
-            rate_limits = await self.rate_limit()
+            rate_limits: dict[str, int] = await self.rate_limit()
 
-            if rate_limits["remaining"] == 0:
+            if int(rate_limits["remaining"]) == 0:
                 logger.info(f"Rate limit reached, sleeping for {rate_limits['reset']} seconds")
                 await asyncio.gather(self.report_status_every_30_secs(rate_limits['reset']), self.sleep_for(rate_limits['reset']))
 
@@ -175,7 +175,7 @@ class ShadowDragonAPI:
             queued_request.set_task_id(queue_response["task_id"])
 
             logger.info(f"Queued request with task_id: {queued_request.get_task_id()}: {queued_request}")
-            
+
 
     async def start_queue_websocket_client(self, completed_queue: asyncio.Queue, total_requests: int):
         """
@@ -205,7 +205,7 @@ class ShadowDragonAPI:
                                 break
                         else:
                             break
-                        
+
                     logger.info("All queued requests have been successfully processed. Closing WebSocket connection.")
         except Exception as e:
             logger.error(f"Error in websocket client: {e}")
@@ -235,7 +235,7 @@ class ShadowDragonAPI:
 
     async def queue_requests(self, reqs: list[QueuedRequest]) -> list[dict[str, Any]]:
         """
-            WIP: This function sends the listed requests, and listens for their responses in 
+            WIP: This function sends the listed requests, and listens for their responses in
         """
 
         completed_queue = asyncio.Queue()
@@ -244,7 +244,7 @@ class ShadowDragonAPI:
 
         return [result for result in results if result is not None][0]
 
-            
+
     # General Search
     @log_request
     async def search(self, alias: str, limit: Optional[int] = 1000, queue: Optional[bool] = None) -> list[dict[str, Any]]:
@@ -426,7 +426,7 @@ class ShadowDragonAPI:
             url = f"{self.base_url}/instagram/users/{user_id}"
 
             if queue:
-                url += f"?queue={queue}"            
+                url += f"?queue={queue}"
 
             async with session.get(url, headers=self.headers) as response:
                 json = await response.json()
@@ -442,7 +442,7 @@ class ShadowDragonAPI:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
 
             url = f"{self.base_url}/instagram/users/{user_id}/story"
-            
+
             if queue:
                 url += f"?queue={queue}"
 
@@ -709,7 +709,7 @@ class ShadowDragonAPI:
                     "reset_in": response.headers.get("X-Ratelimit-Reset")
                 }
                 return json
-            
+
     @log_request
     async def facebook_posts_by_user(self, user_id: str, limit: Optional[int] = 1000, queue: Optional[bool] = None) -> list[dict[str, Any]]:
         async with aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=1200)) as session:
